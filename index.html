@@ -140,28 +140,24 @@
   const questions = [
     {
       id:"q1", digit:"2", title:"Keukenlogica",
-      prompt:`Je hebt 1 ei in huis. Een recept zegt: “Verdubbel het aantal eieren”.
-Hoeveel eieren heb je dan? (alleen het getal)`,
-      expected:"2"
+      prompt:`Hoeveel eieren zitten er in een dozijn?`,
+      expected:"12"
     },
     {
-      id:"q2", digit:"6", title:"Boodschappen",
-      prompt:`In een tas zitten 2 flessen en 4 pakken.
-Hoeveel items draag je totaal? (alleen het getal)`,
-      expected:"6"
-    },
-    {
-      id:"q3", digit:"9", title:"Wisselgeld",
-      prompt:`Je koopt 3 producten van €3.
-Je betaalt met €20 en krijgt €11 terug.
-Wat was het totaalbedrag van je aankopen? (alleen het getal)`,
-      expected:"9"
+      id:"q2", digit:"9", title:"Rekenen",
+      prompt:`Hoe vaak kun je 10 van 100 aftrekken?`,
+      expected:"1"
     },
     {
       id:"q4", digit:"0", title:"To-do",
       prompt:`Je hebt 5 taken. Je rondt ze allemaal af.
-Hoeveel openstaande taken blijven over? (alleen het getal)`,
+Hoeveel openstaande taken blijven over?`,
       expected:"0"
+    },
+    {
+      id:"q4", digit:"6", title:"Boodschappen",
+      prompt:`Een cowboy rijdt een stadje in op vrijdag. Hij blijft drie dagen en vertrekt weer op vrijdag. Hoe kan dat?`,
+      expected:"paard heet vrijdag"
     },
   ];
 
