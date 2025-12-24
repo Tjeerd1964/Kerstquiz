@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Schoondochters Challenge – 2690</title>
+  <title>Schoondochters Challenge 2025</title>
   <style>
     :root{ font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
     *{ box-sizing:border-box; }
@@ -100,7 +100,7 @@
       <div class="row">
         <div>
           <h1>👩‍❤️‍👩 Schoondochters Challenge</h1>
-          <p>Vier alledaagse puzzels. Elke juiste oplossing geeft één cijfer. Verzamel 4 cijfers en zet ze daarna in de juiste volgorde.</p>
+          <p>Vier alledaagse puzzels. Elke juiste oplossing geeft één cijfer. Verzamel 6 cijfers en zet ze daarna in de juiste volgorde.<br/> Klik op 'Starten' om te beginnen!</p>
         </div>
         <div class="controls">
           <div class="pill"><span class="muted">Verdiende cijfers</span> <span id="earned" class="digits">–</span></div>
@@ -128,9 +128,9 @@
     <div class="modal" role="dialog" aria-modal="true" aria-label="Gelukt">
       <h1>🎉 Gelukt, fantastisch meiden! 🎉 </h1>
         <div class="xmasRow">🎄 🎅 ✨ 🎁 🔔 🎄</div>
-      <div class="bigcode">€ 2.690</div>
+      <div class="bigcode">€ 2.690,00</div>
       <p><h1>Jullie hebben de code gevonden en <br/>
-        daarmee elk een bedrag van € 2.690 gewonnen!</h1></p>
+        daarmee elk een bedrag van € 2.690,00 gewonnen!</h1></p>
       <br/><br/>
       <p class="muted"> <h3> 🎄 🎅 ✨ Stuur nu direct in Tikkie naar jullie liefste schoonvader 🎁 🔔 🎄</h3> </p>
        <br/><br/>
@@ -141,7 +141,7 @@
 
 <script>
   // ---- Instellingen ----
-  const finalTargetCode = "2690";
+  const finalTargetCode = "269000";
   const questions = [
     {
       id:"q1", digit:"2", title:"Keukenlogica",
@@ -160,9 +160,22 @@
     },
     {
       id:"q4", digit:"6", title:"Huishouden",
-      prompt:`In de droger zitten tien paar witte sokken en tien paar zwarte sokken. Hoeveel sokken moet je blindelings pakken om zeker te zijn van een paar?`,
+      prompt:`In de droger zitten tien paar witte sokken en tien paar zwarte sokken. Hoeveel sokken moet je blindelings pakken om zeker te zijn van een paar met dezelfde kleur?`,
       expected:"3"
     },
+     {
+      id:"q4", digit:"0", title:"Huishouden",
+      prompt:`Drie monteurs stappen een voor een in een lift. Boven stappen ze een na een weer uit de lift. Hoeveel minuten zaten ze in de lift?`,
+      expected:"2"
+    },
+     {
+      id:"q4", digit:"0", title:"Huishouden",
+      prompt:` Is het legaal voor een man in Nederland om met de zus van zijn weduwe te trouwen? 1-Ja, 2-Nee, 3-Na 6 maanden`,
+      expected:"2"
+    },
+
+
+    Is het legaal voor een man in Californië om met de zus van zijn weduwe te trouwen?
   ];
 
   const $ = (id)=>document.getElementById(id);
