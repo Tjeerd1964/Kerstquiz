@@ -143,42 +143,23 @@
   // ---- Instellingen ----
   const finalTargetCode = "269000";
   const questions = [
-    {
-      id:"q1", digit:"2", title:"Keukenlogica",
-      prompt:`Hoeveel eieren zitten er in een dozijn?`,
-      expected:"12"
-    },
-    {
-      id:"q2", digit:"9", title:"Rekenen",
-      prompt:`Hoe vaak kun je 10 van 100 aftrekken?`,
-      expected:"1"
-    },
-    {
-      id:"q3", digit:"0", title:"To-do",
-      prompt:`Je hebt 5 taken. Je rondt ze allemaal af. Hoeveel openstaande taken blijven over?`,
-      expected:"0"
-    },
-    {
-      id:"q4", digit:"6", title:"Huishouden",
-      prompt:`In de droger zitten tien paar witte sokken en tien paar zwarte sokken. Hoeveel sokken moet je blindelings pakken om zeker te zijn van een paar met dezelfde kleur?`,
-      expected:"3"
-    },
-    {
-      id:"q5", digit:"0", title:"Lift",
-      prompt:`Drie monteurs stappen een voor een in een lift. Boven stappen ze een na een weer uit de lift. Hoeveel minuten zaten ze in de lift?`,
-      expected:"2"
-    },
-    {
-      id:"q6", digit:"0", title:"Strikvraag",
-      prompt:`Is het legaal voor een man in Nederland om met de zus van zijn weduwe te trouwen? 1-Ja, 2-Nee, 3-Na 6 maanden`,
-      expected:"2"
-    }
+    { id:"q1", digit:"2", title:"Keukenlogica", prompt:`Hoeveel eieren zitten er in een dozijn?`, expected:"12" },
+    { id:"q2", digit:"9", title:"Rekenen",      prompt:`Hoe vaak kun je 10 van 100 aftrekken?`, expected:"1"  },
+    { id:"q3", digit:"0", title:"To-do",        prompt:`Je hebt 5 taken. Je rondt ze allemaal af. Hoeveel openstaande taken blijven over?`, expected:"0" },
+    { id:"q4", digit:"6", title:"Huishouden",   prompt:`In de droger zitten tien paar witte sokken en tien paar zwarte sokken. Hoeveel sokken moet je blindelings pakken om zeker te zijn van een paar met dezelfde kleur?`, expected:"3" },
+    { id:"q5", digit:"0", title:"Lift",         prompt:`Drie monteurs stappen een voor een in een lift. Boven stappen ze een na een weer uit de lift. Hoeveel minuten zaten ze in de lift?`, expected:"2" },
+    { id:"q6", digit:"0", title:"Strikvraag",   prompt:`Is het legaal voor een man in Nederland om met de zus van zijn weduwe te trouwen? 1-Ja, 2-Nee, 3-Na 6 maanden`, expected:"2" }
   ];
 
   const $ = (id)=>document.getElementById(id);
+
   const answers = {};
   const earned = [];
   const solved = new Set();
+
+  // Sequentiële flow
+  let gameStarted = false;
+  let activeIndex = -1; // -1 = alles locked, 0 = vraag 1 actief, etc.
 
   // ---- Audio (iOS: unlock via button) ----
   let audioCtx = null;
@@ -197,7 +178,6 @@
     try{
       const ctx = getCtx();
       const now = ctx.currentTime;
-
       function brass(freq, t, dur, vol){
         const o = ctx.createOscillator();
         const g = ctx.createGain();
@@ -226,7 +206,6 @@
         o.start(t); o.stop(t + dur);
         lfo.start(t); lfo.stop(t + dur);
       }
-
       brass(523.25, now + 0.00, 0.28, 0.12);
       brass(659.25, now + 0.12, 0.28, 0.12);
       brass(783.99, now + 0.24, 0.33, 0.13);
@@ -311,19 +290,24 @@
   function renderQuestions(){
     const host = $("questions");
     host.innerHTML = "";
-    questions.forEach((q)=>{
+
+    questions.forEach((q, idx)=>{
       const done = solved.has(q.id);
+
+      // locked totdat je gestart bent, en alleen de "activeIndex" is open (of al solved)
+      const locked = !gameStarted || (idx !== activeIndex && !done);
+
       const el = document.createElement("div");
       el.className = "card";
       el.innerHTML = `
         <div class="row">
-          <div class="tag">🧩 ${q.title} </div>
-          <div class="muted">${done ? "✅ beantwoord" : ""}</div>
+          <div class="tag">🧩 ${q.title}</div>
+          <div class="muted">${done ? "✅ beantwoord" : (locked ? "🔒" : "👉 aan de beurt")}</div>
         </div>
         <p>${q.prompt.replace(/\\n/g,"<br>")}</p>
         <div class="controls">
-          <input id="${q.id}_input" placeholder="Jouw antwoord" ${done ? "disabled":""} />
-          <button id="${q.id}_btn" type="button" ${done ? "disabled":""}>Check</button>
+          <input id="${q.id}_input" placeholder="${locked ? "Klik Starten..." : "Jouw antwoord"}" ${locked ? "disabled":""} />
+          <button id="${q.id}_btn" type="button" ${locked ? "disabled":""}>Check</button>
           <span id="${q.id}_fb"></span>
         </div>
       `;
@@ -331,10 +315,18 @@
 
       const input = $(q.id+"_input");
       const btn = $(q.id+"_btn");
+
       input.addEventListener("input", (e)=>answers[q.id]=e.target.value);
-      input.addEventListener("keydown", (e)=>{ if(e.key==="Enter") submit(q); });
-      btn.addEventListener("click", ()=>submit(q));
+      input.addEventListener("keydown", (e)=>{ if(e.key==="Enter") submit(q, idx); });
+      btn.addEventListener("click", ()=>submit(q, idx));
     });
+
+    // focus op actieve vraag
+    if(gameStarted && activeIndex >= 0 && activeIndex < questions.length){
+      const q = questions[activeIndex];
+      const inp = $(q.id+"_input");
+      if(inp && !inp.disabled) inp.focus();
+    }
   }
 
   function setFeedback(qid, ok, msg){
@@ -343,8 +335,32 @@
     fb.className = ok ? "ok" : "bad";
   }
 
-  function submit(q){
+  function resetToQuestion1(withMsg){
+    for(const k of Object.keys(answers)) delete answers[k];
+    earned.length = 0;
+    solved.clear();
+
+    $("finalCard").style.display = "none";
+    $("winOverlay").classList.remove("show");
+    renderEarned();
+
+    // terug naar vraag 1, maar spel blijft gestart
+    gameStarted = true;
+    activeIndex = 0;
+
+    renderQuestions();
+
+    if(withMsg){
+      setFeedback("q1", false, withMsg);
+    }
+  }
+
+  function submit(q, idx){
+    // alleen huidige actieve vraag mag
+    if(!gameStarted) return;
+    if(idx !== activeIndex) return;
     if(solved.has(q.id)) return;
+
     const user = (answers[q.id]||"").trim().toUpperCase();
     if(!user){ setFeedback(q.id,false,"Vul iets in."); return; }
 
@@ -353,16 +369,21 @@
       earned.push(q.digit);
       renderEarned();
       setFeedback(q.id,true,"Goed! 🎉");
-      confetti(1400);
+      confetti(1200);
       tada();
+
+      // volgende vraag open
+      activeIndex++;
+
       renderQuestions();
 
-      if(earned.length === 6){
+      if(activeIndex >= questions.length){
         startFinal();
       }
     }else{
-      setFeedback(q.id,false,"Net niet. Probeer nog eens.");
+      // fout = terug naar vraag 1
       buzzBad();
+      resetToQuestion1("Fout 😅 terug naar vraag 1!");
     }
   }
 
@@ -425,24 +446,34 @@
   $("resetPick").addEventListener("click", ()=>{ picked=[]; $("finalMsg").textContent=""; renderFinal(); });
   $("winOverlay").addEventListener("click", (e)=>{ if(e.target.id==="winOverlay") $("winOverlay").classList.remove("show"); });
 
-  function resetAll(){
+  function hardResetAll(){
     for(const k of Object.keys(answers)) delete answers[k];
     earned.length = 0;
     solved.clear();
     $("finalCard").style.display = "none";
     $("winOverlay").classList.remove("show");
     renderEarned();
+
+    gameStarted = false;
+    activeIndex = -1;
+
     renderQuestions();
   }
 
-  // geef de knop ook tekst
-  $("startBtn").textContent = "Reset";
-  $("startBtn").addEventListener("click", ()=>resetAll());
-  $("startSoundBtn").addEventListener("click", ()=>{ unlockAudio(); resetAll(); });
+  function startGame(){
+    hardResetAll();
+    gameStarted = true;
+    activeIndex = 0;
+    renderQuestions();
+  }
 
-  // init
-  renderEarned();
-  renderQuestions();
+  // knoppen
+  $("startBtn").textContent = "Reset";
+  $("startBtn").addEventListener("click", hardResetAll);
+  $("startSoundBtn").addEventListener("click", ()=>{ unlockAudio(); startGame(); });
+
+  // init: alles locked
+  hardResetAll();
 </script>
 </body>
 </html>
