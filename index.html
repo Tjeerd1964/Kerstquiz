@@ -163,19 +163,16 @@
       prompt:`In de droger zitten tien paar witte sokken en tien paar zwarte sokken. Hoeveel sokken moet je blindelings pakken om zeker te zijn van een paar met dezelfde kleur?`,
       expected:"3"
     },
-     {
-      id:"q4", digit:"0", title:"Huishouden",
+    {
+      id:"q5", digit:"0", title:"Lift",
       prompt:`Drie monteurs stappen een voor een in een lift. Boven stappen ze een na een weer uit de lift. Hoeveel minuten zaten ze in de lift?`,
       expected:"2"
     },
-     {
-      id:"q4", digit:"0", title:"Huishouden",
-      prompt:` Is het legaal voor een man in Nederland om met de zus van zijn weduwe te trouwen? 1-Ja, 2-Nee, 3-Na 6 maanden`,
+    {
+      id:"q6", digit:"0", title:"Strikvraag",
+      prompt:`Is het legaal voor een man in Nederland om met de zus van zijn weduwe te trouwen? 1-Ja, 2-Nee, 3-Na 6 maanden`,
       expected:"2"
-    },
-
-
-    Is het legaal voor een man in Californië om met de zus van zijn weduwe te trouwen?
+    }
   ];
 
   const $ = (id)=>document.getElementById(id);
@@ -360,7 +357,7 @@
       tada();
       renderQuestions();
 
-      if(earned.length === 4){
+      if(earned.length === 6){
         startFinal();
       }
     }else{
@@ -406,12 +403,12 @@
   }
 
   function pickDigit(item){
-    if(picked.length>=4) return;
+    if(picked.length>=6) return;
     if(picked.some(p=>p.id===item.id)) return;
     picked.push(item);
     renderFinal();
 
-    if(picked.length===4){
+    if(picked.length===6){
       const code = picked.map(p=>p.v).join("");
       if(code === finalTargetCode){
         $("finalMsg").innerHTML = '<span class="ok">Correct! 🎉</span>';
@@ -438,6 +435,8 @@
     renderQuestions();
   }
 
+  // geef de knop ook tekst
+  $("startBtn").textContent = "Reset";
   $("startBtn").addEventListener("click", ()=>resetAll());
   $("startSoundBtn").addEventListener("click", ()=>{ unlockAudio(); resetAll(); });
 
